@@ -1,0 +1,565 @@
+/* ============ 弈心 ChessMind · 设计系统（莫兰迪色系） ============ */
+/* 低饱和「高级灰」暖调：灰驼底 + 陶土强调 + 灰绿辅助；
+   棋盘保持 lichess 同款 brown（本身即低饱和暖调，与莫兰迪和谐） */
+:root {
+  --bg: #E5E1D6;             /* 暖灰驼底 */
+  --bg2: #EFEBE2;            /* 卡片面 */
+  --bg3: #DDD8CA;            /* 输入 / 徽章 / 浅块 */
+  --ink: #423D33;            /* 深暖灰正文 */
+  --muted: #6F685A;          /* 次要文字 */
+  --rule: #CFC9BA;           /* 分隔线 / 边框 */
+  --accent: #A87B5C;         /* 莫兰迪陶土：图标 / 边框 / 大数字 */
+  --accent-deep: #8F6244;    /* 深陶土：主按钮 / 强调文字（保对比度） */
+  --accent-dim: rgba(168, 123, 92, .12);
+  --teal: #64776B;           /* 莫兰迪深灰绿：链接 / 变着 */
+  --teal-mid: #7C9084;       /* 灰绿中调：边框 / 装饰 */
+  --teal-dim: rgba(124, 144, 132, .12);
+  --sq-light: #f0d9b5;       /* lichess 同款棋盘浅格（保持不变） */
+  --sq-dark: #b58863;        /* lichess 同款棋盘深格（保持不变） */
+  --c-best: #6E8A57;
+  --c-excellent: #75905D;
+  --c-good: #7A7A55;
+  --c-book: #8A7960;
+  --c-inaccuracy: #9C7B3A;
+  --c-mistake: #A56B42;
+  --c-blunder: #A65951;
+  --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --sans: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-color: var(--rule) var(--bg); }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--sans); font-size: 14px; line-height: 1.65;
+  min-height: 100vh;
+}
+a { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: var(--mono); font-size: .86em; background: var(--bg3); padding: 1px 6px; border-radius: 4px; color: var(--accent-deep); }
+.hidden { display: none !important; }
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  display: flex; align-items: center; gap: 28px;
+  padding: 0 28px; height: 60px;
+  background: var(--bg2); border-bottom: 1px solid var(--rule);
+  position: sticky; top: 0; z-index: 50;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: block; flex: none; object-fit: cover;
+  border: 1px solid var(--rule);
+}
+.brand-text h1 { font-size: 17px; font-weight: 700; letter-spacing: .02em; }
+.brand-text h1 .en { color: var(--accent-deep); font-weight: 600; }
+.brand-text p { font-size: 11px; color: var(--muted); margin-top: -2px; }
+.tabs { display: flex; gap: 4px; height: 100%; margin-left: auto; }
+.tab {
+  background: none; border: none; color: var(--muted);
+  font-family: var(--sans); font-size: 14px; font-weight: 500;
+  padding: 0 16px; cursor: pointer; border-bottom: 2px solid transparent;
+  height: 100%; display: flex; align-items: center; gap: 7px;
+  transition: color .15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+.cnt {
+  font-size: 11px; font-family: var(--mono); color: var(--muted);
+  background: var(--bg3); border-radius: 9px; padding: 0 7px; min-width: 18px; text-align: center;
+}
+.cnt:empty { display: none; }
+.user-chip {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--muted);
+  background: var(--bg3); border: 1px solid var(--rule);
+  padding: 5px 12px; border-radius: 18px; white-space: nowrap;
+}
+.user-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+.user-chip .dot.off { background: #9C968A; }
+.user-chip .dot.on { background: var(--c-best); box-shadow: 0 0 6px rgba(110,138,87,.6); }
+
+/* ---------- 布局 ---------- */
+main { max-width: 1280px; margin: 0 auto; padding: 26px 28px 60px; }
+.view { display: none; }
+.view.active { display: block; animation: fadein .18s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.card {
+  background: var(--bg2); border: 1px solid var(--rule);
+  border-radius: 12px; padding: 20px 22px;
+}
+.card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.card-title h3 { font-size: 15px; font-weight: 700; }
+.tdot { width: 8px; height: 8px; border-radius: 2px; background: var(--accent); flex: none; }
+.card-title .badge { margin-left: auto; }
+.import-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.import-grid .wide { grid-column: 1 / -1; }
+.divider { height: 1px; background: var(--rule); margin: 16px 0; }
+
+.hint { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.hint.dim { color: #8B8474; font-size: 12.5px; margin-bottom: 6px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* ---------- 表单 ---------- */
+input[type="text"], input[type="password"], textarea, select {
+  background: #F5F2EA; border: 1px solid var(--rule); color: var(--ink);
+  border-radius: 8px; padding: 9px 12px; font-family: var(--sans); font-size: 13.5px;
+  outline: none; transition: border-color .15s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+.row input[type="text"], .row input[type="password"] { flex: 1; min-width: 180px; }
+textarea { width: 100%; resize: vertical; font-family: var(--mono); font-size: 12.5px; }
+.field-label {
+  display: block; font-size: 12px; color: var(--muted); font-weight: 600;
+  letter-spacing: .04em; gap: 6px;
+}
+.field-label select, .field-label input { width: 100%; margin-top: 5px; }
+.settings-grid .field-label { margin-bottom: 12px; }
+
+.btn {
+  background: var(--bg3); border: 1px solid var(--rule); color: var(--ink);
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  padding: 9px 16px; border-radius: 8px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent-deep); border-color: var(--accent-deep); color: #FBF8F1; }
+.btn.primary:hover { background: #9C7050; border-color: #9C7050; }
+.btn.ghost { background: transparent; }
+.btn.danger { border-color: rgba(166, 89, 81, .45); color: #A65951; }
+.btn.danger:hover { border-color: var(--c-blunder); background: rgba(166, 89, 81, .08); }
+.btn.nav { padding: 7px 12px; font-size: 14px; line-height: 1; }
+.btn.link { background: none; border: none; color: var(--teal); padding: 0 4px; }
+.btn.link:hover { text-decoration: underline; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.file-btn { display: inline-flex; align-items: center; }
+
+.badge {
+  font-size: 11.5px; font-family: var(--mono); color: var(--muted);
+  background: var(--bg3); border: 1px solid var(--rule);
+  padding: 2px 9px; border-radius: 10px; white-space: nowrap;
+}
+.badge.ok { color: var(--c-best); border-color: rgba(110, 138, 87, .4); }
+.badge.busy { color: var(--c-inaccuracy); border-color: rgba(156, 123, 58, .4); }
+
+/* ---------- 绑定 ---------- */
+.bound-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+.uname { font-size: 17px; font-weight: 700; }
+.uname a { color: var(--accent-deep); }
+.ratings { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.rating-pill {
+  background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 5px 10px; font-size: 12px; color: var(--muted);
+}
+.rating-pill b { color: var(--ink); font-family: var(--mono); margin-left: 5px; }
+
+.study-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 260px; overflow-y: auto; }
+.study-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 9px 12px;
+}
+.study-item .sname { flex: 1; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.study-item .sid { font-family: var(--mono); font-size: 11px; color: #8B8474; }
+
+/* ---------- 棋谱库表格 ---------- */
+.table-wrap { overflow-x: auto; }
+table.lib { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.lib th {
+  text-align: left; font-size: 11px; letter-spacing: .06em; color: var(--muted);
+  font-weight: 600; padding: 7px 10px; border-bottom: 1px solid var(--rule);
+  text-transform: uppercase; white-space: nowrap;
+}
+table.lib td { padding: 9px 10px; border-bottom: 1px solid rgba(92, 84, 66, .3); vertical-align: middle; }
+table.lib tr:hover td { background: rgba(168, 123, 92, .05); }
+table.lib .mono { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.lib-players { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-status { display: flex; gap: 10px; align-items: center; }
+select.mine-sel { padding: 4px 8px; font-size: 12.5px; border-radius: 6px; width: auto; }
+select.result-sel { padding: 4px 8px; font-size: 12.5px; border-radius: 6px; width: auto; font-weight: 700; background: var(--bg3); }
+select.result-sel.r-win { color: #6E8A57; }
+select.result-sel.r-loss { color: #A65951; }
+select.result-sel.r-draw { color: #6F685A; }
+select.result-sel.r-ongoing { color: #8B8474; }
+
+/* ---------- 分析布局 ---------- */
+.analyze-wrap { display: grid; grid-template-columns: 60% 1fr; gap: 20px; align-items: start; }
+.analyze-left { position: sticky; top: 80px; }
+.game-pick { margin-bottom: 8px; }
+.game-pick select { flex: 1; min-width: 0; }
+.ctl-card-inline { padding: 10px 14px; margin-bottom: 12px; }
+.ctl-card-inline .row { align-items: center; flex-wrap: wrap; gap: 10px; }
+.ctl-card-inline .progress { margin: 8px 0 4px; }
+.board-zone { display: flex; gap: 10px; }
+.eval-bar {
+  width: 14px; border-radius: 7px; overflow: hidden; position: relative;
+  background: #4B463C; border: 1px solid var(--rule); flex: none; align-self: stretch;
+}
+.eval-fill {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, #F6F2E7, #E9E3D1);
+  transition: height .25s ease; height: 50%;
+}
+/* ---------- 棋盘（lichess 同款 brown 主题 + cburnett 棋子） ---------- */
+.board {
+  display: grid; grid-template-columns: repeat(8, 1fr);
+  width: 100%; aspect-ratio: 1 / 1; border-radius: 4px; overflow: hidden;
+  border: 1px solid #B3A386; user-select: none; position: relative;
+  box-shadow: 0 6px 24px rgba(70, 60, 45, .22);
+}
+.board .sq { position: relative; }
+.board .sq.l { background: var(--sq-light); }
+.board .sq.d { background: var(--sq-dark); }
+.board .sq .coord {
+  position: absolute; font-size: 10px; font-weight: 700; font-family: var(--mono);
+  opacity: .85; pointer-events: none; z-index: 1;
+}
+.board .sq .coord.file { bottom: 2px; right: 4px; }
+.board .sq .coord.rank { top: 2px; left: 4px; }
+.board .sq.l .coord { color: var(--sq-dark); }
+.board .sq.d .coord { color: var(--sq-light); }
+/* 最后一步高亮（lichess: rgba(155,199,0,.41)） */
+.board .sq.hl { box-shadow: inset 0 0 0 100px rgba(155, 199, 0, .41); }
+/* 选中格（lichess: rgba(20,85,30,.5)） */
+.board .sq.sel { box-shadow: inset 0 0 0 100px rgba(20, 85, 30, .5); }
+/* 被将军的王（lichess 红色径向渐变） */
+.board .sq.check {
+  background-image: radial-gradient(ellipse at center, rgba(255, 0, 0, 1) 0%, rgba(231, 0, 0, 1) 25%, rgba(169, 0, 0, 0) 89%, rgba(158, 0, 0, 0) 100%);
+}
+/* 可走目标（lichess 绿点 / 吃子圆环） */
+.board .sq.dest::after {
+  content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 24%; height: 24%; border-radius: 50%; background: rgba(20, 85, 30, .5);
+  pointer-events: none; z-index: 1;
+}
+.board .sq.dest.capture::after {
+  width: 100%; height: 100%; background: none;
+  box-shadow: inset 0 0 0 5px rgba(20, 85, 30, .5);
+}
+/* cburnett 棋子（lichess 默认棋子集，SVG 背景） */
+.piece {
+  background-repeat: no-repeat; background-position: center; background-size: 92% 92%;
+  z-index: 2;
+}
+.board .sq .piece { position: absolute; inset: 0; }
+.board .sq .piece[draggable="true"] { cursor: grab; }
+.piece.wk { background-image: url("piece/cburnett/wK.svg"); }
+.piece.wq { background-image: url("piece/cburnett/wQ.svg"); }
+.piece.wr { background-image: url("piece/cburnett/wR.svg"); }
+.piece.wb { background-image: url("piece/cburnett/wB.svg"); }
+.piece.wn { background-image: url("piece/cburnett/wN.svg"); }
+.piece.wp { background-image: url("piece/cburnett/wP.svg"); }
+.piece.bk { background-image: url("piece/cburnett/bK.svg"); }
+.piece.bq { background-image: url("piece/cburnett/bQ.svg"); }
+.piece.br { background-image: url("piece/cburnett/bR.svg"); }
+.piece.bb { background-image: url("piece/cburnett/bB.svg"); }
+.piece.bn { background-image: url("piece/cburnett/bN.svg"); }
+.piece.bp { background-image: url("piece/cburnett/bP.svg"); }
+/* 着法质量圆环 */
+.board .sq .ring {
+  position: absolute; inset: 8%; border-radius: 50%; pointer-events: none;
+  border: 3px solid transparent; z-index: 3;
+}
+.board .sq .ring.blunder { border-color: var(--c-blunder); box-shadow: 0 0 8px rgba(166,89,81,.55); }
+.board .sq .ring.mistake { border-color: var(--c-mistake); }
+.board .sq .ring.inaccuracy { border-color: var(--c-inaccuracy); }
+.board .sq .ring.best { border-color: var(--c-best); }
+/* ---------- 棋子动画与拖拽（chessground 同款规格） ---------- */
+.board { touch-action: none; }
+.board .sq .piece { position: absolute; inset: 0; will-change: transform; }
+.board .piece.t { cursor: grab; }
+.board .piece.anim { z-index: 8; }                        /* 移动动画中的子置于其上（chessground anim） */
+.board .piece.fading { z-index: 1; opacity: .5; transition: opacity 200ms ease; }  /* 被吃子淡出（chessground fading） */
+.pc.drag-ghost { opacity: .3; }                            /* 拖拽起点幽灵子（chessground ghost） */
+.piece.drag-float {
+  position: fixed; z-index: 1000; pointer-events: none;
+  background-size: 98% 98%; border-radius: 4px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
+}
+body.is-dragging, body.is-dragging * { cursor: grabbing !important; }
+.board .sq.drag-over { box-shadow: inset 0 0 0 100px rgba(255, 255, 255, .3); }
+/* 箭头覆盖层（lichess 最佳着法箭头，独立成层便于引擎刷新时局部更新） */
+.arrow-layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.board svg.arrows {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 4;
+}
+/* 升变选择器 */
+.promo-picker {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; gap: 6px; z-index: 20;
+  background: rgba(66, 61, 51, .97); border: 1px solid var(--rule);
+  border-radius: 12px; padding: 10px; box-shadow: 0 12px 40px rgba(70,60,45,.5);
+}
+.promo-btn {
+  width: 58px; height: 58px; border-radius: 9px; border: 1px solid var(--rule);
+  background: var(--sq-light); cursor: pointer; padding: 3px; position: relative;
+}
+.promo-btn:hover { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.promo-btn .piece { position: absolute; inset: 3px; background-size: 100% 100%; }
+.promo-cancel {
+  position: absolute; top: -10px; right: -10px; width: 22px; height: 22px;
+  border-radius: 50%; border: none; background: var(--bg3); color: var(--ink);
+  font-size: 12px; cursor: pointer; border: 1px solid var(--rule);
+}
+/* ---------- 当前着法条（lichess 式：棋盘正下方） ---------- */
+.current-move {
+  display: flex; align-items: center; gap: 12px; margin-top: 10px;
+  background: var(--bg2); border: 1px solid var(--rule); border-radius: 10px;
+  padding: 9px 14px; min-height: 38px;
+}
+.current-move .ply-label {
+  font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+  flex: 1; min-width: 0; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.current-move .cur-san {
+  font-family: var(--mono); font-size: 15px; font-weight: 800; flex: none;
+  color: var(--ink); transition: color .15s;
+}
+.current-move .cur-san.var { color: var(--teal); }
+.current-move .eval-num {
+  margin-left: 0; font-family: var(--mono); font-size: 13.5px; font-weight: 700;
+  color: var(--accent); flex: none; min-width: 88px; text-align: right;
+}
+.board-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px;
+  background: var(--bg2); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px;
+}
+.game-meta { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.game-meta b { color: var(--ink); }
+.game-meta .open-line { color: var(--teal); }
+
+/* ---------- 着法列表（主视图：大尺寸，参考 lichess） ---------- */
+.movelist {
+  display: grid; grid-template-columns: 48px 1fr 1fr; gap: 0 6px;
+  max-height: 460px; overflow-y: auto; font-family: var(--mono); font-size: 13.5px;
+  align-content: start; padding-right: 2px;
+}
+.mv-no { color: var(--muted); padding: 4px 6px; font-size: 12px; }
+.mv { padding: 4px 9px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.mv:hover { background: var(--bg3); }
+.mv.cur { background: var(--accent-dim); box-shadow: inset 0 0 0 1px rgba(168,123,92,.4); }
+.mv.dim { opacity: .45; }
+.mv .san { font-weight: 600; }
+.mv .cd { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.mv .dwp { font-size: 10.5px; color: var(--muted); }
+.mv.var .san { color: var(--teal); }
+/* lichess 式着法标注符号（!·!?·?·??） */
+.mv .glyph { font-weight: 700; font-size: 12px; flex: none; letter-spacing: -1px; }
+.mv .glyph.g-best, .mv .glyph.g-excellent { color: var(--c-best); }
+.mv .glyph.g-inaccuracy { color: var(--c-inaccuracy); }
+.mv .glyph.g-mistake { color: var(--c-mistake); }
+.mv .glyph.g-blunder { color: var(--c-blunder); }
+/* 着法后的评估数字（白方视角） */
+.mv .ev { font-size: 10.5px; color: var(--muted); flex: none; }
+/* AI 教练着法点评（lichess 灰色注释风格，整行显示） */
+.mvc {
+  flex-basis: 100%; font-family: var(--sans); font-size: 11px; line-height: 1.5;
+  color: var(--muted); font-style: italic; padding-left: 14px; cursor: pointer;
+}
+/* 着法解读面板：教练点评 */
+.coach-cmt { font-style: normal !important; color: var(--ink) !important; }
+.move-detail dd.coach-cmt { background: rgba(168,123,92,.07); border-left: 3px solid var(--accent); padding: 6px 10px; border-radius: 0 6px 6px 0; }
+/* 修正错误按钮行 */
+.fix-row { margin-top: 10px; }
+.btn.warn { border-color: rgba(165,107,66,.45); color: var(--c-mistake); }
+.btn.warn:hover { border-color: var(--c-mistake); background: rgba(165,107,66,.08); }
+
+/* 变着区（lichess 式主线之下的探索线路） */
+.var-list {
+  grid-column: 1 / -1; margin-top: 10px; padding: 10px 12px;
+  background: rgba(124,144,132,.07); border: 1px dashed rgba(124,144,132,.4);
+  border-radius: 8px;
+}
+.var-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11.5px; font-weight: 700; color: var(--teal);
+  letter-spacing: .04em; margin-bottom: 6px;
+}
+.var-moves { display: flex; flex-wrap: wrap; gap: 2px 4px; font-family: var(--mono); font-size: 13px; }
+.btn.mini { padding: 2px 8px; font-size: 11px; border-radius: 5px; }
+
+/* ---------- 分析面板（lichess 式：引擎面板置顶，开关即引擎） ---------- */
+.live-card { padding: 14px 16px; }
+.live-card .card-title { margin-bottom: 10px; gap: 12px; }
+.live-head .switch { margin-left: 0; margin-right: 0; flex: none; }
+.live-head .badge { margin-left: 0; flex: none; }
+/* lichess 引擎头部大评估（如 +0.2） */
+.live-eval {
+  font-family: var(--mono); font-size: 21px; font-weight: 800; flex: none;
+  min-width: 66px; text-align: left; color: var(--ink);
+  line-height: 1; letter-spacing: -0.02em;
+}
+.live-eval.good { color: var(--c-best); }
+.live-eval.bad { color: var(--c-blunder); }
+.live-engine {
+  flex: 1; min-width: 0; font-size: 11px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-align: right; margin-right: 10px;
+}
+.live-opts { margin-top: 10px; margin-bottom: 0; flex-wrap: wrap; padding-top: 10px; border-top: 1px dashed var(--rule); }
+.live-opts .chk { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.live-lines { display: flex; flex-direction: column; gap: 4px; min-height: 48px; max-height: 168px; overflow-y: auto; }
+.lline {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--rule);
+  border-radius: 7px; padding: 6px 10px; cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.lline:hover { border-color: rgba(168, 123, 92, .5); background: rgba(168, 123, 92, .06); }
+.lline .leval {
+  font-family: var(--mono); font-size: 13px; font-weight: 800; flex: none;
+  min-width: 52px; text-align: center; border-radius: 5px; padding: 2px 4px;
+  background: var(--bg2); color: var(--ink);
+}
+.lline .leval.good { color: var(--c-best); background: rgba(110, 138, 87, .16); }
+.lline .leval.bad { color: var(--c-blunder); background: rgba(166, 89, 81, .14); }
+.lline .lpv {
+  flex: 1; font-family: var(--mono); font-size: 12.5px; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lline .ld { font-family: var(--mono); font-size: 10.5px; color: var(--muted); flex: none; }
+
+/* 开关（lichess 式引擎开关） */
+.switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-left: auto; margin-right: 10px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background: var(--bg3); border: 1px solid var(--rule); border-radius: 12px;
+  transition: background .18s, border-color .18s;
+}
+.switch .slider::before {
+  content: ''; position: absolute; height: 14px; width: 14px; left: 3px; top: 3px;
+  background: var(--muted); border-radius: 50%; transition: transform .18s, background .18s;
+}
+.switch input:checked + .slider { background: rgba(110, 138, 87, .25); border-color: rgba(110, 138, 87, .55); }
+.switch input:checked + .slider::before { transform: translateX(18px); background: var(--c-best); }
+
+/* ---------- 棋谱库结果筛选 ---------- */
+.lib-filter { margin-left: 4px; padding: 4px 10px; font-size: 12.5px; border-radius: 6px; width: auto; }
+.analyze-tip { margin-top: 10px; }
+.chk input { accent-color: var(--accent); }
+
+/* ---------- 着法解读 ---------- */
+.move-detail dl { display: grid; grid-template-columns: 118px 1fr; gap: 7px 14px; font-size: 13px; }
+.move-detail dt { color: var(--muted); }
+.move-detail dd { font-family: var(--mono); font-size: 12.5px; }
+.cls-tag {
+  display: inline-block; padding: 1px 10px; border-radius: 10px;
+  font-size: 12px; font-weight: 700; font-family: var(--sans); color: #FBF8F1;
+}
+.fen-line { margin-top: 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); word-break: break-all; }
+
+/* ---------- 统计卡片 ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 4px 0 14px; }
+.stat {
+  background: var(--bg3); border: 1px solid var(--rule); border-radius: 10px;
+  padding: 13px 15px;
+}
+.stat .num { font-size: 21px; font-weight: 800; font-family: var(--mono); color: var(--accent); }
+.stat .num small { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 3px; }
+.stat .label { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.stat-grid.profile-stats { grid-template-columns: repeat(6, 1fr); margin-bottom: 18px; }
+
+/* ---------- 评估曲线 ---------- */
+.eval-graph-wrap svg { width: 100%; height: 120px; display: block; background: var(--bg3); border-radius: 8px; border: 1px solid var(--rule); }
+.eval-graph-wrap { margin-top: 14px; }
+
+/* ---------- 画像 ---------- */
+.profile-grid { display: grid; grid-template-columns: 400px 1fr; gap: 18px; margin-bottom: 18px; }
+.radar-wrap { display: flex; justify-content: center; padding: 6px 0; }
+.weakness-list { display: flex; flex-direction: column; gap: 12px; }
+.weak-item {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: var(--bg3); border: 1px solid var(--rule); border-left: 3px solid var(--c-mistake);
+  border-radius: 8px; padding: 13px 16px;
+}
+.weak-item.sev1 { border-left-color: var(--c-blunder); }
+.weak-rank { font-family: var(--mono); font-size: 18px; font-weight: 800; color: var(--c-mistake); }
+.weak-item.sev1 .weak-rank { color: var(--c-blunder); }
+.weak-body b { color: var(--ink); }
+.weak-body p { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.weak-ev { font-family: var(--mono); font-size: 12px; color: var(--c-inaccuracy); }
+
+/* ---------- Markdown 输出 ---------- */
+.md { margin-top: 14px; font-size: 13.5px; }
+.md h2 { font-size: 15px; margin: 18px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--rule); color: var(--accent); }
+.md h2:first-child { margin-top: 4px; }
+.md h3 { font-size: 13.5px; margin: 14px 0 6px; color: var(--ink); }
+.md p { margin: 7px 0; color: #4E483B; }
+.md ul, .md ol { margin: 7px 0 7px 22px; color: #4E483B; }
+.md li { margin: 4px 0; }
+.md strong { color: var(--ink); }
+.md code { font-size: .92em; }
+.md .loading { color: var(--muted); font-style: italic; animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: .45; } }
+
+/* ---------- 进度 / 状态 ---------- */
+.progress { height: 7px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin: 12px 0 4px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--accent)); width: 0%; transition: width .2s; }
+/* 不定态进度（流式拉取对局时总量未知）：填充条往返扫描 */
+.progress-fill.indeterminate {
+  width: 100%;
+  background: linear-gradient(90deg, transparent 0%, var(--teal) 45%, var(--accent) 55%, transparent 100%);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: indet-scan 1.4s ease-in-out infinite;
+  transition: none;
+}
+@keyframes indet-scan {
+  0%   { background-position: -40% 0; }
+  100% { background-position: 140% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill.indeterminate { animation: none; background: var(--teal-mid); }
+}
+
+/* ---------- 绑定账号 · 拉取我的对局 ---------- */
+.my-games { margin-top: 4px; }
+.my-games .field-label select { min-width: 130px; }
+.my-games .btn[disabled] { opacity: .55; cursor: not-allowed; }
+#mygames-status { margin: 10px 0 0; }
+
+/* ---------- 空状态 ---------- */
+.empty-state {
+  text-align: center; padding: 80px 20px; color: var(--muted);
+}
+.es-icon { font-size: 44px; margin-bottom: 12px; opacity: .5; }
+
+/* ---------- 设置 ---------- */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+/* ---------- Toast ---------- */
+#toast { position: fixed; bottom: 22px; right: 22px; z-index: 100; display: flex; flex-direction: column; gap: 9px; }
+.toast {
+  background: var(--bg3); border: 1px solid var(--rule); border-left: 3px solid var(--teal);
+  border-radius: 8px; padding: 11px 16px; font-size: 13px; max-width: 380px;
+  box-shadow: 0 8px 24px rgba(70, 60, 45, .28); animation: slidein .2s ease;
+}
+.toast.err { border-left-color: var(--c-blunder); }
+.toast.ok { border-left-color: var(--c-best); }
+@keyframes slidein { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- 页脚 ---------- */
+footer { border-top: 1px solid var(--rule); padding: 22px 0 30px; margin-top: 20px; }
+footer p { text-align: center; font-size: 12px; color: var(--muted); }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1020px) {
+  .analyze-wrap { grid-template-columns: 1fr; }
+  .analyze-left { position: static; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .stat-grid, .stat-grid.profile-stats { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px) {
+  .import-grid, .settings-grid { grid-template-columns: 1fr; }
+  .stat-grid, .stat-grid.profile-stats { grid-template-columns: repeat(2, 1fr); }
+  .topbar { flex-wrap: wrap; height: auto; padding: 10px 14px; }
+  .tabs { margin-left: 0; height: auto; width: 100%; overflow-x: auto; }
+  .tab { padding: 8px 12px; }
+  .user-chip { display: none; }
+  main { padding: 18px 14px 40px; }
+  .promo-btn { width: 46px; height: 46px; }
+}

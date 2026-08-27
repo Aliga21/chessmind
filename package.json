@@ -1,0 +1,10 @@
+{
+  "name": "chessmind",
+  "version": "1.0.0",
+  "description": "弈心 ChessMind · AI 国际象棋教练",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "python3 -m http.server 8000"
+  }
+}

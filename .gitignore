@@ -1,0 +1,30 @@
+# 依赖
+node_modules/
+
+# 构建
+dist/
+build/
+.cache/
+
+# 日志
+*.log
+npm-debug.log*
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# 编辑器
+.vscode/
+.idea/
+*.sublime-project
+
+# 大型视频文件（可选保留）
+# assets/promo-*.mp4

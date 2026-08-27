@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弈心 ChessMind · AI 国际象棋教练</title>
+<link rel="icon" type="image/png" href="assets/logo-144.png">
+<link rel="apple-touch-icon" href="assets/logo-144.png">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <img class="logo" src="assets/logo-144.png" alt="弈心 ChessMind 标志">
+    <div class="brand-text">
+      <h1>弈心 <span class="en">ChessMind</span></h1>
+      <p>AI 国际象棋教练</p>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="import">导入棋谱<span class="cnt" id="cnt-games"></span></button>
+    <button class="tab" data-tab="analyze">分析与解说<span class="cnt" id="cnt-analyzed"></span></button>
+    <button class="tab" data-tab="profile">画像诊断</button>
+    <button class="tab" data-tab="settings">设置</button>
+  </nav>
+  <div class="user-chip" id="user-chip"><span class="dot off"></span>未绑定 Lichess</div>
+</header>
+
+<main>
+
+<section class="view active" id="view-import">
+  <div class="import-grid">
+
+    <div class="card" id="bind-card">
+      <div class="card-title"><span class="tdot"></span><h3>绑定 Lichess 账号</h3></div>
+      <div id="bind-form">
+        <p class="hint">粘贴你的 Lichess 个人 API 令牌（<a href="https://lichess.org/account/oauth/token" target="_blank" rel="noopener">在此创建</a>，勾选 <code>preference:read</code> 即可）。令牌仅保存在本机浏览器，不会上传到任何服务器。</p>
+        <div class="row">
+          <input type="password" id="token-input" placeholder="lip_ 开头的个人访问令牌" autocomplete="off">
+          <button class="btn primary" id="btn-bind">绑定</button>
+        </div>
+        <p class="hint dim">绑定的作用：显示你的资料与等级分、一键拉取你的公开研讨列表。不绑定也可以用「公开研讨」和「粘贴 PGN」导入。</p>
+      </div>
+      <div id="bind-ok" class="hidden">
+        <div class="bound-row">
+          <div>
+            <div class="uname" id="bound-name"></div>
+            <div class="ratings" id="bound-ratings"></div>
+          </div>
+          <button class="btn ghost" id="btn-unbind">解绑</button>
+        </div>
+        <div class="divider"></div>
+        <div class="my-games">
+          <div class="row">
+            <label class="field-label">拉取范围
+              <select id="mygames-range">
+                <option value="0" selected>全部对局</option>
+                <option value="50">最近 50 局</option>
+                <option value="100">最近 100 局</option>
+                <option value="300">最近 300 局</option>
+                <option value="1000">最近 1000 局</option>
+              </select>
+            </label>
+            <button class="btn primary" id="btn-import-mygames">拉取我的对局</button>
+            <button class="btn danger hidden" id="btn-cancel-mygames">取消</button>
+          </div>
+          <div class="progress hidden" id="mygames-progress"><div class="progress-fill" id="mygames-progress-fill"></div></div>
+          <p class="hint" id="mygames-status">从 Lichess 流式拉取该账号的历史对局（按时间倒序，服务器限速约 20 局/秒），自动判定结果、匹配「我执」，导入后即可批量分析。重复对局会自动跳过，可随时取消，已导入部分保留。</p>
+          <p class="hint dim">对局数量很多时注意浏览器本地存储上限（约 5MB）：空间不足时自动保留最近导入的部分，可用「拉取范围」缩小数量。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span><h3>导入 Lichess 研讨（Studies）</h3></div>
+      <p class="hint">输入任意 Lichess 用户名，列出其<strong>公开研讨</strong>，点击导入（无需令牌）：</p>
+      <div class="row">
+        <input type="text" id="study-user-input" placeholder="用户名，如 EricRosen">
+        <button class="btn" id="btn-list-studies">列出研讨</button>
+      </div>
+      <div id="study-list" class="study-list"></div>
+      <div class="divider"></div>
+      <p class="hint">或直接粘贴研讨链接 / ID：</p>
+      <div class="row">
+        <input type="text" id="study-url-input" placeholder="https://lichess.org/study/xxxxxxxx">
+        <button class="btn" id="btn-import-study">导入</button>
+      </div>
+      <p class="hint dim">每个章节会作为一局棋导入棋谱库。研讨链接格式：<code>lichess.org/study/ID</code>，可含章节路径。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span><h3>粘贴 / 上传 PGN</h3></div>
+      <p class="hint">支持多局 PGN（自动拆分）、含注释与变着的棋谱（自动清洗）。</p>
+      <textarea id="pgn-input" rows="6" placeholder="[Event &quot;...&quot;]&#10;1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+      <div class="row">
+        <label class="btn ghost file-btn">选择 .pgn 文件<input type="file" id="pgn-file" accept=".pgn,.txt" hidden></label>
+        <button class="btn primary" id="btn-import-pgn">导入 PGN</button>
+      </div>
+      <div class="divider"></div>
+      <p class="hint">还没有棋谱？载入演示棋局组（歌剧院之局 / 勒加尔杀 / 学者将死）体验完整流程：</p>
+      <button class="btn" id="btn-load-samples">载入示例棋局组（3 局）</button>
+    </div>
+
+    <div class="card wide" id="library-card">
+      <div class="card-title">
+        <span class="tdot"></span><h3>棋谱库</h3><span class="badge" id="lib-count">0 局</span>
+        <select id="lib-result-filter" class="lib-filter" title="按对局结果筛选棋谱（导入时将杀局面已自动判定结果）">
+          <option value="all">全部结果</option>
+          <option value="win">我胜</option>
+          <option value="loss">我负</option>
+          <option value="draw">和棋</option>
+          <option value="ongoing">进行中 / 未知</option>
+        </select>
+      </div>
+      <p class="hint dim" id="lib-empty">尚无棋谱。从上方任一入口导入，或载入示例。</p>
+      <div class="table-wrap">
+        <table class="lib" id="lib-table">
+          <thead><tr><th>#</th><th>对局</th><th>结果（可改）</th><th>开局</th><th>来源</th><th>我执</th><th>状态</th><th></th></tr></thead>
+          <tbody id="lib-body"></tbody>
+        </table>
+      </div>
+      <p class="hint dim">「我执」决定分析与画像的视角：引擎只统计你所执一方的着法质量。导入时会自动匹配你绑定的用户名。</p>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-analyze">
+  <div class="empty-state" id="analyze-empty">
+    <div class="es-icon">♟</div>
+    <p>棋谱库为空——先到「导入棋谱」导入对局，或<button class="btn link" id="btn-sample-2">载入示例</button>。</p>
+  </div>
+
+  <div class="analyze-wrap" id="analyze-main">
+    <div class="analyze-left">
+      <div class="game-pick row">
+        <select id="game-select"></select>
+        <button class="btn ghost" id="btn-flip" title="翻转棋盘（F）">⇅ 翻转</button>
+      </div>
+      <div class="card ctl-card-inline">
+        <div class="row">
+          <span class="mono" id="engine-state" style="margin-right:auto">引擎就绪 · NNUE</span>
+          <button class="btn primary" id="btn-analyze">分析此局</button>
+          <button class="btn" id="btn-analyze-all">分析全部</button>
+          <button class="btn danger hidden" id="btn-cancel">停止</button>
+        </div>
+        <div class="progress hidden" id="progress-wrap"><div class="progress-fill" id="progress-fill"></div></div>
+        <p class="hint" id="analysis-status"></p>
+      </div>
+      <div class="board-zone">
+        <div class="eval-bar" id="eval-bar"><div class="eval-fill" id="eval-fill"></div></div>
+        <div class="board" id="board"></div>
+      </div>
+      <!-- 当前着法条（lichess 式：棋盘正下方显示回合、当前着法与评估） -->
+      <div class="current-move" id="current-move">
+        <span class="ply-label" id="ply-label">—</span>
+        <span class="cur-san" id="cur-san"></span>
+        <span class="eval-num" id="eval-num">—</span>
+      </div>
+      <div class="board-nav">
+        <button class="btn nav" data-nav="first" title="开局">⏮</button>
+        <button class="btn nav" data-nav="prev" title="上一着（←）">◀</button>
+        <button class="btn nav" data-nav="next" title="下一着（→）">▶</button>
+        <button class="btn nav" data-nav="last" title="终局">⏭</button>
+      </div>
+      <div class="game-meta" id="game-meta"></div>
+      <div class="analyze-tip hint dim">棋盘可点选或拖拽走子（lichess 同款：选中显示可走点，拖拽松手即行棋）；走主线之外的着法将自动进入变着，自定义开局面上的探索着法同样记录为变着。</div>
+    </div>
+
+    <div class="analyze-right">
+      <div class="card live-card">
+        <div class="card-title live-head">
+          <label class="switch" title="开启后引擎持续评估当前局面（lichess 同款，进入本页自动开启）">
+            <input type="checkbox" id="live-toggle"><span class="slider"></span>
+          </label>
+          <span class="live-eval" id="live-eval">—</span>
+          <span class="live-engine mono" title="Stockfish 18 NNUE · WebAssembly · 本地运行（旧浏览器自动回退 SF11）">SF18 · NNUE 本地</span>
+          <span class="badge" id="live-state">已关闭</span>
+        </div>
+        <div id="live-lines" class="live-lines">
+          <p class="hint dim">开关开启后引擎即评估当前局面：实时评分、多条候选线路、最佳着法箭头随局面切换自动重算。</p>
+        </div>
+        <div class="live-opts row">
+          <label class="field-label">线路
+            <select id="live-multipv">
+              <option value="1">1 条</option>
+              <option value="2">2 条</option>
+              <option value="3" selected>3 条</option>
+            </select>
+          </label>
+          <label class="field-label">实时深度
+            <select id="live-depth">
+              <option value="12">12</option>
+              <option value="18" selected>18</option>
+              <option value="22">22</option>
+            </select>
+          </label>
+          <label class="chk"><input type="checkbox" id="live-arrow" checked> 显示最佳着法箭头</label>
+        </div>
+      </div>
+
+      <div class="card movelist-card">
+        <div class="card-title"><span class="tdot"></span><h3>着法列表</h3><span class="badge" id="movelist-badge">未分析</span>
+          <button class="btn ghost mini" id="btn-cmt" title="用大语言模型为本局关键着法生成简短点评，显示在着法列表中">AI 点评</button>
+        </div>
+        <div class="movelist" id="movelist"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="tdot"></span><h3>当前着法 · 引擎解读</h3></div>
+        <div id="move-detail" class="move-detail"><p class="hint dim">点击左侧着法查看引擎评估、推荐着法与胜率变化。</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="tdot"></span><h3>本局统计</h3><span class="badge" id="stats-badge">未分析</span></div>
+        <div id="game-stats" class="stat-grid"><p class="hint dim">分析后显示准确率、ACPL 与失误分布。</p></div>
+        <div class="eval-graph-wrap" id="eval-graph-wrap">
+          <p class="field-label">评估曲线（白方视角胜率）</p>
+          <svg id="eval-graph" viewBox="0 0 600 120" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="tdot"></span><h3>AI 教练解说</h3><span class="badge" id="llm-badge">未生成</span></div>
+        <div class="row">
+          <button class="btn primary" id="btn-narrate">生成解说</button>
+          <button class="btn ghost" id="btn-copy-prompt" title="把提示词复制到剪贴板，可手动粘贴给任意大模型">复制提示词</button>
+        </div>
+        <div id="narration" class="md"><p class="hint dim">在「设置」中配置大模型 API（DeepSeek / 通义 / OpenAI 兼容端点）。无 API 时可用「复制提示词」手动获取解说。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-profile">
+  <div class="empty-state" id="profile-empty">
+    <div class="es-icon">◈</div>
+    <p>画像诊断需要至少 <strong>1 局已完成引擎分析</strong>的对局（建议 5 局以上更有代表性）。</p>
+  </div>
+  <div id="profile-main" class="hidden">
+    <div class="stat-grid profile-stats" id="profile-stats"></div>
+    <div class="profile-grid">
+      <div class="card">
+        <div class="card-title"><span class="tdot"></span><h3>能力雷达</h3></div>
+        <div class="radar-wrap" id="radar-wrap"></div>
+        <p class="hint dim">各维度由引擎数据换算（0–100）：开局/中局/残局 = 100 − 阶段 ACPL×1.5；战术敏锐 = 大错率惩罚；着法质量 = Lichess 同款准确率算法；稳定性 = 失当+失误率惩罚。</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="tdot"></span><h3>阶段明细</h3></div>
+        <div class="table-wrap"><table class="lib" id="phase-table"></table></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span><h3>短板诊断（本地规则）</h3></div>
+      <div id="weakness-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span><h3>开局战绩</h3></div>
+      <div class="table-wrap"><table class="lib" id="opening-table"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span><h3>AI 深度诊断</h3><span class="badge" id="llm-badge-p">未生成</span></div>
+      <div class="row">
+        <button class="btn primary" id="btn-diagnose">生成画像诊断</button>
+      </div>
+      <div id="diagnosis" class="md"><p class="hint dim">基于全部已分析对局聚合格局数据，生成短板归因与四周训练计划。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-settings">
+  <div class="settings-grid">
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span><h3>大语言模型（解说与诊断）</h3></div>
+      <p class="hint">使用 OpenAI 兼容的 <code>/chat/completions</code> 端点。API Key 仅存于本机浏览器 localStorage，只发往你配置的端点。</p>
+      <label class="field-label">服务商预设
+        <select id="llm-preset">
+          <option value="deepseek">DeepSeek（api.deepseek.com）</option>
+          <option value="dashscope">阿里云百炼 · 通义（兼容模式）</option>
+          <option value="siliconflow">硅基流动 SiliconFlow</option>
+          <option value="openai">OpenAI</option>
+          <option value="custom">自定义（OpenAI 兼容）</option>
+        </select>
+      </label>
+      <label class="field-label">Base URL
+        <input type="text" id="llm-baseurl" placeholder="https://api.deepseek.com">
+      </label>
+      <label class="field-label">模型
+        <input type="text" id="llm-model" placeholder="deepseek-chat">
+      </label>
+      <label class="field-label">API Key
+        <input type="password" id="llm-key" placeholder="sk-..." autocomplete="off">
+      </label>
+      <button class="btn primary" id="btn-save-llm">保存设置</button>
+      <p class="hint dim">注意：端点需允许浏览器跨域（CORS）。DeepSeek / OpenAI 通常可用；若报 CORS 或网络错误，请用「复制提示词」在任意聊天界面手动生成。浏览器直连官方 DeepSeek 需确认你的网络可达。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span><h3>数据管理</h3></div>
+      <div class="row">
+        <button class="btn" id="btn-export">导出全部数据（JSON）</button>
+        <button class="btn danger" id="btn-reset">清空本地数据</button>
+      </div>
+      <p class="hint dim">棋谱、分析结果、令牌与设置均保存在浏览器 localStorage（键 <code>chessmind-v1</code>）。分析结果可导出备份。</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="toast"></div>
+
+<script src="assets/vendor/chess.min.js"></script>
+<script src="assets/engine.js"></script>
+<script src="assets/lichess.js"></script>
+<script src="assets/board.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
