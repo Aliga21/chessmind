@@ -1,46 +1,44 @@
 {
-  "buildCommand": null,
-  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
     {
-      "source": "**/*.wasm",
+      "source": "/(.*\\.wasm)$",
       "headers": [
         { "key": "Content-Type", "value": "application/wasm" },
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "**/*.js",
+      "source": "/(.*\\.js)$",
       "headers": [
         { "key": "Content-Type", "value": "application/javascript; charset=utf-8" },
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "**/*.css",
+      "source": "/(.*\\.css)$",
       "headers": [
         { "key": "Content-Type", "value": "text/css; charset=utf-8" },
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "**/*.svg",
+      "source": "/(.*\\.svg)$",
       "headers": [
         { "key": "Content-Type", "value": "image/svg+xml" },
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "**/*.png",
+      "source": "/(.*\\.png)$",
       "headers": [
         { "key": "Content-Type", "value": "image/png" },
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "**/*.mp4",
+      "source": "/(.*\\.mp4)$",
       "headers": [
         { "key": "Content-Type", "value": "video/mp4" },
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
