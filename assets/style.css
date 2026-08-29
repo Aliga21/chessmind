@@ -1,7 +1,7 @@
-/* ============ 弈心 ChessMind · 设计系统（莫兰迪色系） ============ */
-/* 低饱和「高级灰」暖调：灰驼底 + 陶土强调 + 灰绿辅助；
+/* ============ 弈心 ChessMind · 设计系统 ============ */
+/* 默认主题：莫兰迪色系（低饱和「高级灰」暖调：灰驼底 + 陶土强调 + 灰绿辅助）；
    棋盘保持 lichess 同款 brown（本身即低饱和暖调，与莫兰迪和谐） */
-:root {
+:root, [data-theme="morandi"] {
   --bg: #E5E1D6;             /* 暖灰驼底 */
   --bg2: #EFEBE2;            /* 卡片面 */
   --bg3: #DDD8CA;            /* 输入 / 徽章 / 浅块 */
@@ -25,6 +25,34 @@
   --c-blunder: #A65951;
   --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
   --sans: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+/* ---------- 粉色主题（可切换） ---------- */
+/* 色卡：#F4C8D8（浅粉底）· #FFFFFF（纯白卡片）· #E793B4（深粉强调）· #000000（纯黑文字） */
+[data-theme="pink"] {
+  --bg: #F4C8D8;             /* 浅粉背景 */
+  --bg2: #FFFFFF;            /* 纯白卡片面 */
+  --bg3: #FBE0EA;            /* 浅粉输入框 / 徽章 */
+  --ink: #000000;            /* 纯黑正文 */
+  --muted: #777777;          /* 次要文字（深灰，保持对比度） */
+  --rule: #E793B4;           /* 分隔线 / 边框（深粉） */
+  --accent: #E793B4;         /* 深粉：图标 / 边框 / 大数字 */
+  --accent-deep: #C86B8A;    /* 更深粉：主按钮（保对比度） */
+  --accent-dim: rgba(231, 147, 180, .18);
+  --teal: #E793B4;           /* 链接 / 变着（与 accent 同色系） */
+  --teal-mid: #D87BA0;       /* 边框 / 装饰 */
+  --teal-dim: rgba(231, 147, 180, .18);
+  /* 棋盘颜色保持 lichess brown 不变 */
+  --sq-light: #f0d9b5;
+  --sq-dark: #b58863;
+  /* 着法质量颜色保持不变（语义色，不随主题切换） */
+  --c-best: #6E8A57;
+  --c-excellent: #75905D;
+  --c-good: #7A7A55;
+  --c-book: #8A7960;
+  --c-inaccuracy: #9C7B3A;
+  --c-mistake: #A56B42;
+  --c-blunder: #A65951;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scrollbar-color: var(--rule) var(--bg); }
@@ -145,6 +173,17 @@ textarea { width: 100%; resize: vertical; font-family: var(--mono); font-size: 1
 .badge.busy { color: var(--c-inaccuracy); border-color: rgba(156, 123, 58, .4); }
 
 /* ---------- 绑定 ---------- */
+.theme-toggle {
+  /* 主题切换按钮：顶栏右侧，与 user-chip 并列 */
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 12px; font-size: 13px; font-weight: 500;
+  border-radius: 18px; white-space: nowrap;
+}
+.theme-toggle:hover { background: var(--bg3); border-color: var(--accent); }
+.theme-toggle::after {
+  content: attr(data-label);
+  font-family: var(--sans);
+}
 .bound-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
 .uname { font-size: 17px; font-weight: 700; }
 .uname a { color: var(--accent-deep); }

@@ -93,6 +93,7 @@
     cancelAnalysis: false,
     busy: false,            // 批量分析进行中：实时面板暂停、棋盘不显示其箭头/评估
     libFilter: 'all',       // 棋谱库结果筛选
+    theme: 'morandi',       // 当前主题：morandi（默认莫兰迪）/ pink（粉色主题）
     settings: {
       depth: 13,
       liveMultipv: 3,
@@ -105,6 +106,7 @@
     const snap = (games) => localStorage.setItem(KEY, JSON.stringify({
       lichess: S.lichess,
       liveOn: S.liveOn,
+      theme: S.theme,          // 保存当前主题偏好（morandi / pink）
       settings: S.settings,
       games: games.map((g) => ({
         id: g.id, source: g.source, sourceLabel: g.sourceLabel, headers: g.headers,
@@ -166,6 +168,7 @@
       if (!j) return 0;
       if (j.lichess) S.lichess = j.lichess;
       if (typeof j.liveOn === 'boolean') S.liveOn = j.liveOn;   // 记住引擎开关（lichess 同款体验）
+      if (typeof j.theme === 'string' && (j.theme === 'morandi' || j.theme === 'pink')) S.theme = j.theme;   // 恢复主题偏好
       if (j.settings) S.settings = Object.assign(S.settings, j.settings);
       if (j.games) S.games = j.games.map((g) => {
         /* 局面（fenAfter）不再启动时全量修复：批量导入的对局为省存储未带 FEN，
@@ -1460,6 +1463,24 @@
     $('llm-key').value = cfg.apiKey;
   }
 
+  /** 应用当前主题到 DOM：设置 documentElement 的 data-theme 属性，
+      并更新切换按钮上显示的标签文字。CSS 通过 [data-theme="xxx"] 选择器切换变量 */
+  function applyTheme() {
+    // 设置根元素 data-theme 属性，CSS 选择器据此生效
+    document.documentElement.setAttribute('data-theme', S.theme);
+    // 更新切换按钮显示的文字（显示当前主题名称）
+    const btn = $('theme-toggle');
+    if (btn) btn.dataset.label = S.theme === 'pink' ? '粉色' : '莫兰迪';
+  }
+
+  /** 切换主题：在 morandi 和 pink 之间轮换，保存偏好 */
+  function toggleTheme() {
+    S.theme = S.theme === 'morandi' ? 'pink' : 'morandi';
+    applyTheme();
+    persist();
+    toast('已切换到「' + (S.theme === 'pink' ? '粉色' : '莫兰迪') + '」主题', 'ok');
+  }
+
   function wire() {
     document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
 
@@ -1663,6 +1684,9 @@
       location.reload();
     });
 
+    // 主题切换按钮：点击在莫兰迪 / 粉色之间轮换
+    $('theme-toggle').addEventListener('click', toggleTheme);
+
     window.addEventListener('resize', () => {
       const b = $('board');
       if (b && b.clientWidth) b.style.fontSize = Math.max(18, b.clientWidth / 8 * 0.85) + 'px';
@@ -1671,6 +1695,7 @@
 
   function init() {
     const stale = loadState();
+    applyTheme();   // 先应用主题（需要在 DOM 渲染前设置 data-theme）
     wire();
     renderUserChip(); renderBind(); renderLibrary(); renderCounts(); renderSettingsForm();
     if (S.games.length) { S.cur = 0; renderAnalyzeView(); }
