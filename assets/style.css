@@ -314,8 +314,10 @@ select.result-sel.r-ongoing { color: #8B8474; }
 .pc.drag-ghost { opacity: 0; }                             /* 拖拽起点原始子完全隐藏（只留浮动棋子跟随鼠标，更简洁美观） */
 .piece.drag-float {
   position: fixed; z-index: 1000; pointer-events: none;
-  background-size: 98% 98%; border-radius: 4px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
+  background-size: 98% 98%;
+  /* 阴影跟随棋子轮廓（SVG 透明底）：drop-shadow 按 alpha 通道投影，
+     不会像 box-shadow 那样在棋子底下投出黑灰色矩形块 */
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .35));
 }
 body.is-dragging, body.is-dragging * { cursor: grabbing !important; }
 .board .sq.drag-over { box-shadow: inset 0 0 0 100px rgba(255, 255, 255, .3); }
