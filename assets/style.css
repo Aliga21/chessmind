@@ -28,20 +28,20 @@
 }
 
 /* ---------- 粉色主题（可切换） ---------- */
-/* 色卡：#F4C8D8（浅粉底）· #B8E0EC（水蓝卡片）· #E793B4（深粉强调）· #000000（纯黑文字） */
+/* 色卡：#F4C8D8（浅粉底）· #FFFFFF（纯白卡片）· #E793B4（深粉强调）· #000000（纯黑文字） */
 [data-theme="pink"] {
   --bg: #F4C8D8;             /* 浅粉背景 */
-  --bg2: #B8E0EC;            /* 水蓝色卡片面 */
-  --bg3: #CFE9F1;            /* 更浅水蓝输入框 / 徽章 */
+  --bg2: #FFFFFF;            /* 纯白卡片面 */
+  --bg3: #FBE0EA;            /* 浅粉输入框 / 徽章 */
   --ink: #000000;            /* 纯黑正文 */
-  --muted: #556677;          /* 次要文字（深灰蓝，保持对比度） */
-  --rule: #8FC5D6;           /* 分隔线 / 边框（水蓝中调） */
+  --muted: #777777;          /* 次要文字（深灰，保持对比度） */
+  --rule: #E793B4;           /* 分隔线 / 边框（深粉） */
   --accent: #E793B4;         /* 深粉：图标 / 边框 / 大数字 */
   --accent-deep: #C86B8A;    /* 更深粉：主按钮（保对比度） */
-  --accent-dim: rgba(231, 147, 180, .22);
-  --teal: #4A90A4;           /* 链接 / 变着（深水蓝，区分卡片色） */
-  --teal-mid: #8FC5D6;       /* 边框 / 装饰 */
-  --teal-dim: rgba(74, 144, 164, .18);
+  --accent-dim: rgba(231, 147, 180, .18);
+  --teal: #E793B4;           /* 链接 / 变着（与 accent 同色系） */
+  --teal-mid: #D87BA0;       /* 边框 / 装饰 */
+  --teal-dim: rgba(231, 147, 180, .18);
   /* 棋盘颜色保持 lichess brown 不变 */
   --sq-light: #f0d9b5;
   --sq-dark: #b58863;
@@ -311,7 +311,7 @@ select.result-sel.r-ongoing { color: #8B8474; }
 .board .piece.t { cursor: grab; }
 .board .piece.anim { z-index: 8; }                        /* 移动动画中的子置于其上（chessground anim） */
 .board .piece.fading { z-index: 1; opacity: .5; transition: opacity 200ms ease; }  /* 被吃子淡出（chessground fading） */
-.pc.drag-ghost { opacity: .3; }                            /* 拖拽起点幽灵子（chessground ghost） */
+.pc.drag-ghost { opacity: 0; }                             /* 拖拽起点原始子完全隐藏（只留浮动棋子跟随鼠标，更简洁美观） */
 .piece.drag-float {
   position: fixed; z-index: 1000; pointer-events: none;
   background-size: 98% 98%; border-radius: 4px;
