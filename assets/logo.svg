@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ChessMind 弈心 logo：圆角方形棋盘格 + 中央棋子 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 圆角方形底板 -->
+  <rect width="64" height="64" rx="12" ry="12" fill="#423D33"/>
+  <!-- 棋盘格（3×3 简化版，经典国际象棋棕调） -->
+  <rect x="12" y="12" width="40" height="40" fill="#f0d9b5" stroke="#b58863" stroke-width="1"/>
+  <rect x="22" y="12" width="10" height="10" fill="#b58863"/>
+  <rect x="42" y="12" width="10" height="10" fill="#b58863"/>
+  <rect x="12" y="22" width="10" height="10" fill="#b58863"/>
+  <rect x="32" y="22" width="10" height="10" fill="#b58863"/>
+  <rect x="22" y="32" width="10" height="10" fill="#b58863"/>
+  <rect x="42" y="32" width="10" height="10" fill="#b58863"/>
+  <rect x="12" y="42" width="10" height="10" fill="#b58863"/>
+  <rect x="32" y="42" width="10" height="10" fill="#b58863"/>
+  <!-- 中央白王棋子（简化版 cburnett wK 造型） -->
+  <g fill="#FFFFFF" stroke="#2a2a2a" stroke-width="1" stroke-linejoin="round">
+    <!-- 王冠十字 -->
+    <path d="M32 18 L32 22" stroke-width="2"/>
+    <path d="M29.5 19.5 L34.5 19.5" stroke-width="2"/>
+    <!-- 王冠底 -->
+    <path d="M27 22 L37 22 L36 26 L35 25 L33.5 27 L32 25 L30.5 27 L29 25 L28 26 Z" stroke-width="1.2"/>
+    <!-- 头部圆珠 -->
+    <circle cx="32" cy="32" r="5.5"/>
+    <!-- 身体 -->
+    <path d="M27 38 L37 38 L38 46 L26 46 Z"/>
+    <!-- 底座 -->
+    <ellipse cx="32" cy="47.5" rx="7" ry="1.5"/>
+  </g>
+</svg>
