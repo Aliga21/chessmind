@@ -571,6 +571,8 @@
       onSquareRightClick: () => { S.sel = null; renderBoard(); }
     });
     renderEvalBar(fen);
+    // 棋盘重渲染会重建 DOM（board.js innerHTML），若升变待选则重新挂载选择器
+    if (S.promo) renderPromoPicker();
   }
 
   function whiteCpAt(g, p) {
@@ -707,21 +709,27 @@
       '<button class="promo-btn" data-promo="' + p + '" title="升变为 ' + rankNames[p] + '"><div class="piece ' + color + p + '"></div></button>'
     ).join('');
     board.appendChild(div);
-    // 把 picker 定位到目标格：用 transform 居中，让 JS 计算精确位置
+    // 把 picker 覆盖到目标格所在列上（棋盘内部，Lichess 同款）：
+    // .board 有 overflow:hidden，绝不能定位到棋盘外，否则会被裁剪不可见。
+    // 白方升变（rank 8）→ 顶部对齐目标格，向下覆盖 4 格（q,n,r,b）
+    // 黑方升变（rank 1）→ 底部对齐目标格，向上覆盖 4 格（b,r,n,q，后贴目标格）
     requestAnimationFrame(() => {
       const cRect = targetCell.getBoundingClientRect();
       const bRect = board.getBoundingClientRect();
-      // picker 宽高由 4 个圆形按钮 + gap 构成
-      const btn = div.querySelector('.promo-btn');
-      const btnSize = btn ? btn.offsetWidth : 52;
-      const gap = 4;
-      const totalH = btnSize * 4 + gap * 3;
-      // 水平居中对齐目标格
-      const left = cRect.left - bRect.left + cRect.width / 2 - btnSize / 2;
-      // 垂直：向上弹则底部贴目标格顶部；向下弹则顶部贴目标格底部
+      const cell = cRect.width;              // 格子边长（按钮同尺寸，精确覆盖整列）
+      // 按钮尺寸 = 格子尺寸，棋子内边距按比例
+      div.querySelectorAll('.promo-btn').forEach((b) => {
+        b.style.width = cell + 'px';
+        b.style.height = cell + 'px';
+      });
+      const totalH = cell * 4;
+      // 水平：与目标格整列对齐
+      const left = cRect.left - bRect.left;
+      // 垂直：白方→picker 顶边贴目标格顶边（向下延伸）；
+      //       黑方→picker 底边贴目标格底边（向上延伸）
       const top = upward
-        ? cRect.top - bRect.top - totalH - gap
-        : cRect.bottom - bRect.top + gap;
+        ? cRect.top - bRect.top
+        : cRect.bottom - bRect.top - totalH;
       div.style.left = left + 'px';
       div.style.top = top + 'px';
     });
