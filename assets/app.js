@@ -681,30 +681,93 @@
     if (S.var && p > S.var.from) S.var = null;
     setPly(p);
   }
+  /** 升变选择器：Lichess 风格，紧贴目标格纵向弹出
+      白方升变（目标 rank 8）→ 目标格上方，顺序 q,n,r,b（后在最上，象紧贴格子）
+      黑方升变（目标 rank 1）→ 目标格下方，顺序 b,r,n,q（象紧贴格子，后在最下）
+      每个选项是灰色圆形棋子，整体位于棋盘容器内 */
   function renderPromoPicker() {
     hidePromoPicker();
     if (!S.promo) return;
-    const zone = document.querySelector('.board-zone');
-    if (!zone) return;
+    // 找到棋盘容器（board.js 创建时设置了 position: relative）
+    const board = document.querySelector('#board');
+    if (!board) return;
+    // 找到升变目标格元素（data-sq="e8" 这样的属性）
+    const targetCell = board.querySelector('[data-sq="' + S.promo.to + '"]');
+    if (!targetCell) return;
+    const color = sideToMove(S.promo.fen);
+    const rank = S.promo.to[1];           // 目标格的行号（'8' 或 '1'）
+    const upward = rank === '8';          // true=向上弹（白方），false=向下弹（黑方）
+    // 升变顺序：白方 q→n→r→b（后在上象贴格）；黑方倒序 b→r→n→q（象贴格后在下）
+    const order = upward ? ['q', 'n', 'r', 'b'] : ['b', 'r', 'n', 'q'];
+    const rankNames = { q: '后', n: '马', r: '车', b: '象' };
     const div = document.createElement('div');
     div.id = 'promo-picker';
-    const color = sideToMove(S.promo.fen);
-    div.innerHTML = ['q', 'r', 'b', 'n'].map((p) =>
-      '<button class="promo-btn" data-promo="' + p + '" title="升变为 ' + { q: '后', r: '车', b: '象', n: '马' }[p] + '"><div class="pc piece ' + color + p + '"></div></button>'
-    ).join('') + '<button class="promo-cancel" data-promo="x">✕</button>';
-    zone.appendChild(div);
+    div.className = upward ? 'promo-picker upward' : 'promo-picker downward';
+    div.innerHTML = order.map((p) =>
+      '<button class="promo-btn" data-promo="' + p + '" title="升变为 ' + rankNames[p] + '"><div class="piece ' + color + p + '"></div></button>'
+    ).join('');
+    board.appendChild(div);
+    // 把 picker 定位到目标格：用 transform 居中，让 JS 计算精确位置
+    requestAnimationFrame(() => {
+      const cRect = targetCell.getBoundingClientRect();
+      const bRect = board.getBoundingClientRect();
+      // picker 宽高由 4 个圆形按钮 + gap 构成
+      const btn = div.querySelector('.promo-btn');
+      const btnSize = btn ? btn.offsetWidth : 52;
+      const gap = 4;
+      const totalH = btnSize * 4 + gap * 3;
+      // 水平居中对齐目标格
+      const left = cRect.left - bRect.left + cRect.width / 2 - btnSize / 2;
+      // 垂直：向上弹则底部贴目标格顶部；向下弹则顶部贴目标格底部
+      const top = upward
+        ? cRect.top - bRect.top - totalH - gap
+        : cRect.bottom - bRect.top + gap;
+      div.style.left = left + 'px';
+      div.style.top = top + 'px';
+    });
+    // 点击任意棋子选项 → 完成升变
     div.addEventListener('click', (e) => {
       const b = e.target.closest('[data-promo]');
       if (!b) return;
-      if (b.dataset.promo === 'x') { S.promo = null; hidePromoPicker(); renderBoard(); return; }
       const { from, to, fen } = S.promo;
       S.promo = null;
       playMove(from, to, b.dataset.promo, fen);
     });
+    // 点击 picker 外部 / 棋盘上其他位置 → 关闭选择器
+    setTimeout(() => {   // 下一帧绑定，避免触发本次点击的冒泡
+      document.addEventListener('click', onPromoOutsideClose, { once: true });
+      document.addEventListener('keydown', onPromoEscClose, { once: true });
+    }, 0);
+  }
+  /** 点击升变选择器外部时关闭（棋盘本身、空白区等） */
+  function onPromoOutsideClose(e) {
+    const p = document.getElementById('promo-picker');
+    if (p && !p.contains(e.target)) {
+      S.promo = null;
+      hidePromoPicker(); renderBoard();
+    } else if (p && p.contains(e.target)) {
+      // 点击了 picker 内部但没点到按钮（概率低），不拦截
+      document.addEventListener('click', onPromoOutsideClose, { once: true });
+      return;
+    } else {
+      // picker 已不存在，不处理
+    }
+  }
+  /** 按 ESC 关闭升变选择器 */
+  function onPromoEscClose(e) {
+    if (e.key === 'Escape') {
+      S.promo = null;
+      hidePromoPicker(); renderBoard();
+    } else {
+      document.addEventListener('keydown', onPromoEscClose, { once: true });
+    }
   }
   function hidePromoPicker() {
     const p = document.getElementById('promo-picker');
     if (p) p.remove();
+    // 清除可能残留的外部点击监听
+    document.removeEventListener('click', onPromoOutsideClose);
+    document.removeEventListener('keydown', onPromoEscClose);
   }
 
   function renderPlyLabel() {
