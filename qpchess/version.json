@@ -1,14 +1,14 @@
 {
-    "versionCode":  3,
-    "versionName":  "1.0.2",
-    "apkUrl":  "https://github.com/Aliga21/chessmind/releases/download/qpchess-v1.0.2/qingpu-chess-admin.apk",
+    "versionCode":  4,
+    "versionName":  "1.0.3",
+    "apkUrl":  "https://github.com/Aliga21/chessmind/releases/download/qpchess-v1.0.3/qingpu-chess-admin.apk",
     "apkMirrors":  [
-                       "https://gh-proxy.com/https://github.com/Aliga21/chessmind/releases/download/qpchess-v1.0.2/qingpu-chess-admin.apk",
-                       "https://ghfast.top/https://github.com/Aliga21/chessmind/releases/download/qpchess-v1.0.2/qingpu-chess-admin.apk"
+                       "https://gh-proxy.com/https://github.com/Aliga21/chessmind/releases/download/qpchess-v1.0.3/qingpu-chess-admin.apk",
+                       "https://ghfast.top/https://github.com/Aliga21/chessmind/releases/download/qpchess-v1.0.3/qingpu-chess-admin.apk"
                    ],
-    "size":  7121267,
-    "sha256":  "6b5f6fdfda06c31b9c18361fd9e5a19fe42d609d0b8e0059a8b08bb0ab7314df",
-    "changelog":  "1. 新增手机端表格卡片布局，选手、配对、争议、总榜等页面不再横向滚动\n2. 新增启动自动检查更新，可在应用内下载并安装新版本\n3. 手机端分页与页面高度适配优化",
+    "size":  6601679,
+    "sha256":  "d726dd19719bf3196bbd33215af1c1d91e1497d071de6b3c4d0cb73c08d546a7",
+    "changelog":  "1. 新增启动自动检查更新与登录页手动检查入口\\n2. 新增应用内下载安装包、SHA-256 校验与多线路下载\\n3. 优化手机端表格卡片布局与分页",
     "force":  false,
-    "publishedAt":  "2026-11-13T22:35:24.5422307+08:00"
+    "publishedAt":  "2026-11-13T22:39:13.1619338+08:00"
 }
