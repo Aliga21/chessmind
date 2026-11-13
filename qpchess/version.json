@@ -1,0 +1,10 @@
+{
+    "versionCode":  2,
+    "versionName":  "1.0.1",
+    "apkUrl":  "https://github.com/Aliga21/chessmind/releases/download/qpchess-v1.0.1/qingpu-chess-admin.apk",
+    "size":  6600199,
+    "sha256":  "00d2fb13016b955eedcac4568e9525fcd59d4ab4face96698aca562444fd9964",
+    "changelog":  "1. 新增手机端表格卡片布局，选手、配对、争议、总榜等页面不再横向滚动\n2. 新增启动自动检查更新，可在应用内下载并安装新版本\n3. 手机端分页与页面高度适配优化",
+    "force":  false,
+    "publishedAt":  "2026-11-13T22:22:39.8532918+08:00"
+}
